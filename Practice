@@ -1,0 +1,624 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LootBoxSimulator.Models.DAO;
+using Microsoft.EntityFrameworkCore;
+using System.Text;
+
+namespace LootBoxSimulator
+{
+    public class LootBoxManager
+    {
+        private readonly RemoteDatabaseContext db = new RemoteDatabaseContext();
+
+        public void Run()
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append("Print");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("1. Print category");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("2. Print rate");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("3. Print items");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("4. Print LootBox");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("Category menu");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("5. Change category");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("6. Remove category");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("7. Add  category");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("Rate menu");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("8. Change rate");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("9. Remove rate");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("10. Add  rate");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("Item menu");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("11. Change item");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("12. Remove item");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("13. Add  item");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("LootBox menu");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("14. Start Lootbox");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("15. Start MultiLootbox");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("16. Open LootBox");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("17. Add item in LootBox");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("18. Create LootBox");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("19. Change LootBox");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("20.RenameLootBox");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("21.AddLootBoxItem");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("22.LootBoxItems");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("23.MultiBow ");
+            stringBuilder.AppendLine();
+            Console.WriteLine(stringBuilder.ToString());
+
+            if (!int.TryParse(Console.ReadLine(), out int menuPosition))
+            {
+                Console.WriteLine("Please enter a valid number");
+                return;
+            }
+
+            switch (menuPosition)
+            {
+                case 1: PrintCategories(); break;
+                case 2: PrintRates(); break;
+                case 3: PrintItems(); break;
+                case 4: LookLootBox(); break;
+                case 5: ChangeCategory(); break;
+                case 6: RemoveCategory(); break;
+                case 7: AddCategory(); break;
+                case 8: ChangeRate(); break;
+                case 9: RemoveRate(); break;
+                case 10: AddRate(); break;
+                case 11: ChangeItem(); break;
+                case 12: RemoveItem(); break;
+                case 13: AddItem(); break;
+                case 14: StartLootBox(); break;
+                case 15: StartMultiLootBox(); break;
+                case 16: OpenLootBox(); break;
+                case 17: AddItemInLootBox(); break;
+                case 18: CreateLootBox(); break;
+                case 19: ChangeLootBox(); break;
+                case 20: RenameLootBox(); break;
+                case 21: AddLootBoxItem(); break;
+                case 22: LootBoxItems(); break;
+                case 23: MultiBow(); break;
+                default:
+                    Console.WriteLine("Unknown Menu Position");
+                    break;
+            }
+        }
+
+        void AddItem()
+        {
+            Console.WriteLine("Please enter an items name: ");
+            string itemName = Console.ReadLine();
+            if (string.IsNullOrEmpty(itemName)) return;
+            ItemDao itemDao = new ItemDao();
+            itemDao.Name = itemName;
+
+            Console.WriteLine("Enter items Url: ");
+            string itemUrl = Console.ReadLine();
+            if (string.IsNullOrEmpty(itemUrl)) return;
+            itemDao.Url = itemUrl;
+
+            Console.WriteLine("Enter items description: ");
+            string itemDescription = Console.ReadLine();
+            if (string.IsNullOrEmpty(itemDescription)) return;
+            itemDao.Description = itemDescription;
+
+            db.Items.Add(itemDao);
+            db.SaveChanges();
+        }
+
+        void ChangeItem()
+        {
+            if (!int.TryParse(Console.ReadLine(), out int ItemID)) return;
+            String ItemName = Console.ReadLine();
+            if (String.IsNullOrEmpty(ItemName)) return;
+            var itemDao = db.Items.Find(ItemID);
+            itemDao.Name = ItemName;
+            db.SaveChanges();
+        }
+        private void PrintCategories()
+        {
+            foreach (var categoryDao in db.Categories)
+            {
+                Console.WriteLine($"Id: {categoryDao.Id} Name: {categoryDao.Name}");
+            }
+        }
+        void RemoveItem()
+        {
+            Console.WriteLine("Please enter a Item ID to remove");
+            if (!int.TryParse(Console.ReadLine(), out int ItemID)) return;
+            var itemDao = db.Items.Find(ItemID);
+            db.Items.Remove(itemDao);
+            db.SaveChanges();
+        }
+        void AddCategory()
+        {
+            Console.WriteLine("Please enter a Category Name for new category");
+            String CategoryName = Console.ReadLine();
+            if (String.IsNullOrEmpty(CategoryName)) return;
+            CategoryDao categoryDao = new CategoryDao();
+            categoryDao.Name = CategoryName;
+
+            db.Categories.Add(categoryDao);
+            db.SaveChanges();
+        }
+        void StartMultiLootBox()
+        {
+            Console.Write("Please enter a number of rolls: ");
+            string input = Console.ReadLine();
+            if (!int.TryParse(input, out int numberOfRolls) || numberOfRolls <= 0)
+            {
+                Console.WriteLine("Invalid input. Please enter a positive integer.");
+                return;
+            }
+            else
+            {
+
+                for (int i = 0; i < numberOfRolls; i++)
+                {
+                    StartLootBox();
+                }
+            }
+        }
+
+        void RemoveCategory()
+        {
+            Console.WriteLine("Please enter a Category ID to remove");
+            if (!int.TryParse(Console.ReadLine(), out int CategoryID)) return;
+            var categoryDao = db.Categories.Find(CategoryID);
+            db.Categories.Remove(categoryDao);
+            db.SaveChanges();
+        }
+
+        void ChangeRate()
+        {
+            if (!int.TryParse(Console.ReadLine(), out int RateID)) return;
+            String RateName = Console.ReadLine();
+            if (String.IsNullOrEmpty(RateName)) return;
+            var rateDao = db.Rates.Find(RateID);
+            rateDao.Name = RateName;
+            db.SaveChanges();
+        }
+        void MultiBow()
+        {
+            Console.Write("Please enter a number of rolls: ");
+            int numberOfRolls = int.Parse(Console.ReadLine());
+            if (numberOfRolls <= 0)
+            {
+                Console.WriteLine("Number of rolls must be greater then 0.");
+                return;
+            }
+
+            for (int i = 0; i < numberOfRolls; i++)
+            {
+                ItemRandom(1);
+            }
+
+        }
+        void AddRate()
+        {
+            Console.WriteLine("Please enter a Rate Name for new Rate");
+            String RateName = Console.ReadLine();
+            if (String.IsNullOrEmpty(RateName)) return;
+            RateDao rateDao = new RateDao();
+            rateDao.Name = RateName;
+
+            Console.WriteLine("Please enter a Rates ID");
+            int Rate = int.Parse(Console.ReadLine());
+            rateDao.Rate = Rate;
+
+            Console.WriteLine("Please enter a Rate Color");
+            String RateColor = Console.ReadLine();
+            if (String.IsNullOrEmpty(RateColor)) return;
+            rateDao.Color = RateColor;
+
+            db.Rates.Add(rateDao);
+            db.SaveChanges();
+        }
+
+        void RemoveRate()
+        {
+            Console.WriteLine("Please enter a Rate ID to remove");
+            if (!int.TryParse(Console.ReadLine(), out int RateID)) return;
+            var rateDao = db.Rates.Find(RateID);
+            db.Rates.Remove(rateDao);
+            db.SaveChanges();
+        }
+        void ChangeCategory()
+        {
+            if (!int.TryParse(Console.ReadLine(), out int CategoryID)) return;
+            String CategoryName = Console.ReadLine();
+            if (String.IsNullOrEmpty(CategoryName)) return;
+            var categoryDao = db.Categories.Find(CategoryID);
+            categoryDao.Name = CategoryName;
+            db.SaveChanges();
+        }
+        void AddLootBoxItem()
+        {
+            Console.WriteLine("Please enter items ID: ");
+            int.TryParse(Console.ReadLine(), out int itemId);
+            Console.WriteLine("Please enter LootBox ID: ");
+            int.TryParse(Console.ReadLine(), out int lootBoxId);
+
+            var lootbox = db.LootBoxes.FirstOrDefault(lb => lb.Id == lootBoxId);
+            var item = db.Items.FirstOrDefault(i => i.Id == itemId);
+
+            if (lootbox != null && item != null)
+            {
+                if (lootbox.Items == null)
+                {
+                    lootbox.Items = new List<ItemDao>();
+                }
+
+                if (!lootbox.Items.Any(x => x.Id == itemId))
+                {
+                    lootbox.Items.Add(item);
+                    db.SaveChanges();
+                }
+            }
+        }
+        void LootBoxItems()
+        {
+            Console.WriteLine("Please enter the Lootbox ID:"); if (!int.TryParse(Console.ReadLine(), out int lootboxId))
+            {
+                Console.WriteLine("Error: Invalid Lootbox ID format.");
+                return;
+            }
+            var lootbox = db.LootBoxes
+                .Include(it => it.Items).ThenInclude(item => item.Category)
+                 .Include(it => it.Items).ThenInclude(item => item.Rate)
+                    .FirstOrDefault(lootbox => lootbox.Id == lootboxId);
+            if (lootbox == null)
+            {
+                Console.WriteLine($"Error: Lootbox with ID {lootboxId} not found.");
+                return;
+            }
+            if (lootbox.Items == null || lootbox.Items.Count == 0)
+            {
+                Console.WriteLine($"Error: Lootbox with ID {lootboxId} has no items.");
+                return;
+            }
+            Console.WriteLine($"Items in Lootbox with ID {lootboxId}:");
+            foreach (var item in lootbox.Items)
+            {
+                var rate = db.Rates.FirstOrDefault(r => r.Id == item.Rate.Id);
+                if (rate == null)
+                {
+                    Console.WriteLine($"Rarity with ID {item.Rate} not found."); continue;
+                }
+                else
+                {
+                    Console.WriteLine($"ID: {item.Id}   Name: {item.Name}   Category: {item.Category.Name}");
+                    Console.WriteLine($"Description: {item.Description}");
+                    Console.WriteLine($"Rate: {rate.Rate}");
+                    Console.WriteLine();
+                }
+            }
+        }
+        void RenameLootBox()
+        {
+            if (!int.TryParse(Console.ReadLine(), out int LootBoxID)) return;
+            String LootBoxName = Console.ReadLine();
+            if (String.IsNullOrEmpty(LootBoxName)) return;
+            var LootBoxDao = db.LootBoxes.Find(LootBoxID);
+            LootBoxDao.Name = LootBoxName;
+            db.SaveChanges();
+        }
+        void AddItemInLootBox()
+        {
+            Console.WriteLine("Please enter items ID: ");
+            int.TryParse(Console.ReadLine(), out int itemId);
+            Console.WriteLine("Please enter LootBox ID: ");
+            int.TryParse(Console.ReadLine(), out int lootBoxId);
+
+            var lootbox = db.LootBoxes.FirstOrDefault(lb => lb.Id == lootBoxId);
+            var item = db.Items.FirstOrDefault(i => i.Id == itemId);
+
+            if (lootbox != null && item != null)
+            {
+                if (lootbox.Items == null)
+                {
+                    lootbox.Items = new List<ItemDao>();
+                }
+
+                if (!lootbox.Items.Any(x => x.Id == itemId))
+                {
+                    lootbox.Items.Add(item);
+                    db.SaveChanges();
+                }
+            }
+        }
+
+        void PrintItems()
+        {
+            foreach (var ItemDao in db.Items.Include(x => x.Category).Include(r => r.Rate))
+            {
+                Console.WriteLine($"Id: {ItemDao.Id} Name: {ItemDao.Name} RateId: {ItemDao.Rate.Name}");
+                Console.WriteLine($"Description; {ItemDao.Description}");
+                Console.WriteLine($"Url: {ItemDao.Url} CategoryId: {ItemDao.Category.Name} RateId: {ItemDao.Rate.Name} ");
+            }
+        }
+        void StartLootBox()
+        {
+            void NumberInRange(decimal min)
+            {
+                foreach (var item in db.Rates.OrderByDescending(annet => annet.Rate))
+                {
+                    Console.WriteLine(item.Rate);
+                }
+            }
+            decimal[] range = db.Rates.Select(dalion => dalion.Rate).ToArray();
+            range = range.OrderByDescending(marsel => marsel).ToArray();
+            foreach (var itemm in range)
+            {
+                Console.WriteLine(itemm);
+            }
+
+            RemoteDatabaseContext databaseContext = new RemoteDatabaseContext();
+
+            var result = RandomizeRate();
+            var item = RandomizeItem(result);
+            Console.WriteLine($"{item?.Name} {item?.Id}");
+
+            ItemDao? RandomizeItem(RateDao? rateDao)
+            {
+                if (rateDao == null) return null;
+                var items = databaseContext.Items
+                    .Where(item =>
+                        item.Rate.Id == rateDao.Id
+                        ).ToList();
+                if (items.Count == 0) return null;
+                Random random = new Random();
+                int randomIndex = random.Next(0, items.Count);
+                return items[randomIndex];
+            }
+
+
+            RateDao? RandomizeRate()
+            {
+                decimal Sum = databaseContext.Rates.Select(item => item.Rate).Sum();
+
+                if (Sum == 1)
+                {
+                    var rates = databaseContext
+                        .Rates
+                        .OrderByDescending(item => item.Rate).ToList();
+                    if (rates.Count == 0) return null;
+                    decimal start = 0;
+                    decimal end = rates[0].Rate;
+                    Random random = new Random();
+                    decimal number = Convert.ToDecimal(random.NextDouble());
+                    for (var i = 0; i < rates.Count; i++)
+                    {
+                        if (number >= start && number <= end)
+                        {
+                            Console.WriteLine($"{number} {start} {end}");
+                            return rates[i];
+                        }
+
+                        start = end;
+                        end = start + rates[i].Rate;
+                    }
+                    return null;
+                }
+                else return null;
+            }
+        }
+        void CreateLootBox()
+        {
+            Console.WriteLine("Please enter a LootBox name: ");
+            string LootBoxName = Console.ReadLine();
+            if (string.IsNullOrEmpty(LootBoxName)) return;
+            LootBoxDao LootBoxDao = new LootBoxDao();
+            LootBoxDao.Name = LootBoxName;
+
+            Console.WriteLine("Enter number of items: ");
+            string LootBoxItemsNum = Console.ReadLine();
+            if (string.IsNullOrEmpty(LootBoxItemsNum)) return;
+            LootBoxDao.itemNum = int.Parse(LootBoxItemsNum);
+
+            Console.WriteLine("Enter items description: ");
+            string LootBoxDescription = Console.ReadLine();
+            if (string.IsNullOrEmpty(LootBoxDescription)) return;
+            LootBoxDao.Description = LootBoxDescription;
+
+            db.LootBoxes.Add(LootBoxDao);
+            db.SaveChanges();
+        }
+        void ChangeLootBox()
+        {
+            if (!int.TryParse(Console.ReadLine(), out int LootBoxID)) return;
+            String LootBoxName = Console.ReadLine();
+            if (String.IsNullOrEmpty(LootBoxName)) return;
+            var LootBoxDao = db.LootBoxes.Find(LootBoxID);
+            LootBoxDao.Name = LootBoxName;
+            db.SaveChanges();
+        }
+        void OpenLootBox()
+        {
+            Console.WriteLine("Please enter the Lootbox ID:");
+            if (!int.TryParse(Console.ReadLine(), out int lootboxId))
+            {
+                Console.WriteLine("Error: Invalid Lootbox ID format.");
+                return;
+            }
+
+            var lootbox = db.LootBoxes
+                   .Include(it => it.Items).ThenInclude(item => item.Category)
+                    .Include(it => it.Items).ThenInclude(item => item.Rate)
+                       .FirstOrDefault(lootbox => lootbox.Id == lootboxId);
+
+
+            if (lootbox == null)
+            {
+                Console.WriteLine($"Error: Lootbox with ID {lootboxId} not found.");
+                return;
+            }
+
+            if (lootbox.Items == null || lootbox.Items.Count == 0)
+            {
+                Console.WriteLine($"Error: Lootbox with ID {lootboxId} has no items.");
+                return;
+            }
+
+            Random rnd = new Random();
+            int index = rnd.Next(lootbox.Items.Count);
+            var item = lootbox.Items[index];
+
+            Console.ForegroundColor = GetConsoleColor(item.Rate.Color);
+            Console.WriteLine($"ID:{item.Id}, Name: {item.Name}, Category: {item.Category.Name}");
+            Console.WriteLine($"Description: {item.Description}");
+            Console.WriteLine($"Rate: {item.Rate.Rate}");
+            Console.ResetColor();
+        }
+        void LookLootBox()
+        {
+            Console.WriteLine("Enter the Lootbox ID:"); if (!int.TryParse(Console.ReadLine(), out int lootboxId))
+            {
+                Console.WriteLine("Invalid Lootbox ID format.");
+                return;
+            }
+            var lootbox = db.LootBoxes
+                .Include(it => it.Items).ThenInclude(item => item.Category)
+                 .Include(it => it.Items).ThenInclude(item => item.Rate)
+                    .FirstOrDefault(lootbox => lootbox.Id == lootboxId);
+            if (lootbox == null)
+            {
+                Console.WriteLine($"Lootbox with ID {lootboxId} not found.");
+                return;
+            }
+            if (lootbox.Items == null || lootbox.Items.Count == 0)
+            {
+                Console.WriteLine($"Lootbox with ID {lootboxId} has no items.");
+                return;
+            }
+            Console.WriteLine($"Items in Lootbox with ID {lootboxId}:");
+            foreach (var item in lootbox.Items)
+            {
+                var rate = db.Rates.FirstOrDefault(r => r.Id == item.Rate.Id);
+                if (rate == null)
+                {
+                    Console.WriteLine($"Rarity with ID {item.Rate} not found."); continue;
+                }
+                else
+                {
+                    Console.WriteLine($"ID: {item.Id}   Name: {item.Name}   Category: {item.Category.Name}");
+                    Console.WriteLine($"Description: {item.Description}");
+                    Console.WriteLine($"Rate: {rate.Rate}");
+                    Console.WriteLine();
+                }
+            }
+        }
+        private void PrintRates()
+        {
+            foreach (var rateDao in db.Rates)
+            {
+                Console.WriteLine($"Id: {rateDao.Id} Name: {rateDao.Name} Color: {rateDao.Color}");
+            }
+        }
+        static ConsoleColor GetConsoleColor(string colorName)
+        {
+            return colorName.ToLower() switch
+            {
+                "blue" => ConsoleColor.Cyan,
+                "green" => ConsoleColor.Green,
+                "red" => ConsoleColor.DarkRed,
+                "purple" => ConsoleColor.Magenta,
+                _ => ConsoleColor.White,
+            };
+        }
+        void ItemRandom(decimal min)
+        {
+            {
+                foreach (var ite in db.Rates.OrderByDescending(moana => moana.Rate))
+                {
+                    Console.WriteLine(ite.Rate);
+                }
+            }
+
+            RemoteDatabaseContext databaseContext = new RemoteDatabaseContext();
+
+            var result = RandomizeRate();
+            var item = RandomizeItem(result);
+            Console.WriteLine($"{item?.Name} {item?.Id}");
+
+            ItemDao? RandomizeItem(RateDao? rateDao)
+            {
+                if (rateDao == null) return null;
+                var items = databaseContext.Items
+                    .Where(item =>
+                        item.Rate.Id == rateDao.Id
+                        ).ToList();
+                if (items.Count == 0) return null;
+                Random random = new Random();
+                int randomIndex = random.Next(0, items.Count);
+                return items[randomIndex];
+            }
+
+
+            RateDao? RandomizeRate()
+            {
+                decimal Sum = databaseContext.Rates.Select(item => item.Rate).Sum();
+
+                if (Sum == 1)
+                {
+                    var rates = databaseContext
+                        .Rates
+                        .OrderByDescending(item => item.Rate).ToList();
+                    if (rates.Count == 0) return null;
+                    decimal start = 0;
+                    decimal end = rates[0].Rate;
+                    Random random = new Random();
+                    decimal number = Convert.ToDecimal(random.NextDouble());
+                    for (var i = 0; i < rates.Count; i++)
+                    {
+                        if (number >= start && number <= end)
+                        {
+                            Console.WriteLine($"{number} {start} {end}");
+                            return rates[i];
+                        }
+
+                        start = end;
+                        end += rates[i].Rate;
+                    }
+                    return null;
+                }
+                else return null;
+            }
+
+        }
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            LootBoxManager manager = new LootBoxManager();
+            manager.Run();
+        }
+    }
+}
